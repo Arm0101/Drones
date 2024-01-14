@@ -1,0 +1,27 @@
+@host = http://localhost:1234/api
+###
+GET {{host}}/drones/
+###
+GET {{host}}/drones/available/
+
+###
+GET {{host}}/drones/1/medications
+
+###
+GET {{host}}/drones/1/battery
+
+###
+POST {{host}}/drones/
+Content-Type:application/json
+
+{
+
+}
+
+###
+POST {{host}}/drones/1/medications
+Content-Type:application/json
+
+{
+
+}
