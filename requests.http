@@ -15,7 +15,11 @@ POST {{host}}/drones/
 Content-Type:application/json
 
 {
-
+    "serialNumber": "DRN014",
+    "model": "Lightweight",
+    "state": "IDLE",
+    "weightLimit": "101",
+    "batteryCapacity": "100"
 }
 
 ###
