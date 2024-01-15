@@ -13,8 +13,6 @@ droneRouter.post('/:serialNumber/medications', (req, res) => {
 droneRouter.get('/:serialNumber/medications', (req, res) => {
   res.json({ msg: 'checking loaded medication items for a given drone' })
 })
-droneRouter.get('/:serialNumber/battery', (req, res) => {
-  res.json({ msg: 'check drone battery level for a given drone' })
-})
+droneRouter.get('/:serialNumber/battery', DroneController.checkBatteryLevel)
 
 export default droneRouter

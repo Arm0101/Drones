@@ -43,6 +43,19 @@ export default class DroneController {
       res.status(500).json({ error: 'Error get available' })
     }
   }
+
+  static async checkBatteryLevel(req, res) {
+    try {
+      const { serialNumber } = req.params
+      const drone = await Drone.findOne({ where: { serialNumber } })
+      if (!drone) return res.status(404).json({ msg: 'drone not found' })
+      const { batteryCapacity } = drone.toJSON()
+      res.json({ 'Battery Level': batteryCapacity })
+    } catch (error) {
+      console.error(error)
+      res.status(500).json({ error: 'Error check battery level' })
+    }
+  }
 }
 
 const formatDroneResult = (resp) => {

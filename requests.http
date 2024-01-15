@@ -8,7 +8,7 @@ GET {{host}}/drones/available/
 GET {{host}}/drones/1/medications
 
 ###
-GET {{host}}/drones/1/battery
+GET {{host}}/drones/DRN001/battery
 
 ###
 POST {{host}}/drones/
