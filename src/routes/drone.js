@@ -1,9 +1,7 @@
 import { Router } from 'express'
-
+import DroneController from '../controllers/drone.js'
 const droneRouter = new Router()
-droneRouter.get('/', (req, res) => {
-  res.json({ msg: 'get all drones' })
-})
+droneRouter.get('/', DroneController.getAllDrones)
 droneRouter.post('/', (req, res) => {
   res.json({ msg: 'registering a drone' })
 })

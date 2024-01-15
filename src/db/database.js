@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize'
-
+import 'dotenv/config'
 const db = new Sequelize('drones_db', process.env.DATABASE_USER, process.env.DATABASE_PASS, {
   dialect: 'mysql',
   host: process.env.DATABASE_HOST,
