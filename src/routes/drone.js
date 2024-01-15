@@ -6,9 +6,7 @@ droneRouter.post('/', (req, res) => {
   res.json({ msg: 'registering a drone' })
 })
 
-droneRouter.get('/available', (req, res) => {
-  res.json({ msg: 'checking available drones for loading' })
-})
+droneRouter.get('/available', DroneController.getAvailable)
 droneRouter.post('/:serialNumber/medications', (req, res) => {
   res.json({ msg: 'loading a drone with medication items' })
 })
