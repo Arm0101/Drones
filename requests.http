@@ -5,17 +5,17 @@ GET {{host}}/drones/
 GET {{host}}/drones/available/
 
 ###
-GET {{host}}/drones/1/medications
+GET {{host}}/drones/DRN002/medications
 
 ###
-GET {{host}}/drones/DRN001/battery
+GET {{host}}/drones/DRN002/battery
 
 ###
 POST {{host}}/drones/
 Content-Type:application/json
 
 {
-    "serialNumber": "DRN014",
+    "serialNumber": "DRN016",
     "model": "Lightweight",
     "state": "IDLE",
     "weightLimit": "101",
@@ -23,10 +23,10 @@ Content-Type:application/json
 }
 
 ###
-POST {{host}}/drones/DRN013/medications
+POST {{host}}/drones/DRN015/medications
 Content-Type:application/json
 
 {
     "MED001":"1",
-    "MED002":"2"
+    "MED001":"2"
 }

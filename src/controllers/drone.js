@@ -20,7 +20,7 @@ export default class DroneController {
       const result = formatDroneResult(resp)
       res.json(result)
     } catch (error) {
-      console.log(error)
+      console.error(error)
       res.status(500).json({ error: 'Error get available' })
     }
   }
@@ -35,7 +35,7 @@ export default class DroneController {
         where: {
           '$droneState.name$': AVAILABLE_STATE,
           batteryCapacity: {
-            [Op.lt]: BATERY_LIMIT
+            [Op.gt]: BATERY_LIMIT
           }
         }
       })
@@ -52,8 +52,6 @@ export default class DroneController {
       const { serialNumber } = req.params
       const drone = await Drone.findOne({ where: { serialNumber } })
       if (!drone) return res.status(404).json({ msg: 'drone not found' })
-
-      console.log(drone.toJSON())
       const { batteryCapacity } = drone.toJSON()
       res.json({ 'Battery Level': batteryCapacity })
     } catch (error) {
@@ -77,9 +75,9 @@ export default class DroneController {
       if (!checkSerial) return res.status(400).json({ err: 'this drone already exists' })
       const droneData = { ...body, state: idModel, model: idModel }
       const drone = await Drone.create(droneData)
-      res.status(201).json({ drone })
+      res.status(201).json(drone)
     } catch (error) {
-      console.log(error)
+      console.error(error)
       res.status(500).json({ error: 'Error create' })
     }
   }
@@ -128,6 +126,38 @@ export default class DroneController {
       res.status(500).json({ error: 'Error load medication' })
     }
   }
+
+  static async checkLoadedMedication(req, res) {
+    try {
+      const { serialNumber } = req.params
+      const _drone = await Drone.findOne({ where: { serialNumber } })
+      if (!_drone) return res.status(404).json({ msg: 'drone not found' })
+
+      const drone = _drone.toJSON()
+      const { state } = drone
+      const idStateLoaded = await getIdStateLoaded()
+
+      if (idStateLoaded !== state) {
+        return res.status(400).json({ msg: 'this drone doesnt have medications loaded ' })
+      }
+      const idCargo = await getLastIdCargo({ idDrone: serialNumber })
+      const resp = await Cargo.findAll({ where: { idDrone: serialNumber, idCargo } })
+      const result = resp.map((c) => {
+        const { idMedication } = c.toJSON()
+        return idMedication
+      })
+      const resultMed = []
+      for (const codeM of result) {
+        const _med = await Medication.findOne({ where: { code: codeM } })
+        const med = _med.toJSON()
+        resultMed.push(med)
+      }
+      res.json(resultMed)
+    } catch (error) {
+      console.error(error)
+      res.status(500).json({ error: 'Error checking medication' })
+    }
+  }
 }
 
 const formatDroneResult = (resp) => {
@@ -173,8 +203,8 @@ const checkDrone = async (serialNumber) => {
   const resp = await Drone.findOne({ where: { serialNumber } })
   return !resp
 }
-const getLastIdCargo = async () => {
-  const idCargo = await Cargo.max('idCargo')
+const getLastIdCargo = async (condition) => {
+  const idCargo = await Cargo.max('idCargo', { where: condition })
   return idCargo ?? 0
 }
 const getIdStateLoaded = async () => {
