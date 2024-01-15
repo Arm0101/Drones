@@ -1,8 +1,11 @@
-import { Op } from 'sequelize'
+import { Op, where } from 'sequelize'
 import Drone from '../models/drone.js'
 import Model from '../models/model.js'
 import State from '../models/state.js'
+import Medication from '../models/medication.js'
+import Cargo from '../models/cargo.js'
 import { validateDrone } from '../schemas/drone.js'
+import { validateCargo } from '../schemas/cargo.js'
 const BATERY_LIMIT = 25
 const AVAILABLE_STATE = 'IDLE'
 export default class DroneController {
@@ -49,6 +52,8 @@ export default class DroneController {
       const { serialNumber } = req.params
       const drone = await Drone.findOne({ where: { serialNumber } })
       if (!drone) return res.status(404).json({ msg: 'drone not found' })
+
+      console.log(drone.toJSON())
       const { batteryCapacity } = drone.toJSON()
       res.json({ 'Battery Level': batteryCapacity })
     } catch (error) {
@@ -76,6 +81,51 @@ export default class DroneController {
     } catch (error) {
       console.log(error)
       res.status(500).json({ error: 'Error create' })
+    }
+  }
+
+  static async loadWithMedications(req, res) {
+    try {
+      const { body } = req
+      if (!validateCargo(body)) return res.status(400).json('invalid input')
+
+      const { serialNumber } = req.params
+      const _drone = await Drone.findOne({
+        include: [{ model: State, attributes: ['name'], as: 'droneState' }],
+        where: { serialNumber }
+      })
+      if (!_drone) return res.status(404).json({ msg: 'drone not found' })
+
+      const drone = _drone.toJSON()
+
+      if (drone.droneState.name !== AVAILABLE_STATE) {
+        return res.status(400).json({ msg: 'drone is not available' })
+      }
+      const { weightLimit, batteryCapacity } = drone
+
+      if (BATERY_LIMIT > batteryCapacity) {
+        return res.status(400).json({ msg: `The drone's battery is below ${BATERY_LIMIT}%` })
+      }
+      let totalWeight = 0
+      const idCargo = (await getLastIdCargo()) + 1
+      const data = []
+      for (const medCode in body) {
+        const _med = await Medication.findOne({ where: { code: medCode } })
+        if (!_med) return res.status(404).json({ msg: `Medication with code ${medCode} not found` })
+        const med = _med.toJSON()
+        const { weight, code } = med
+        totalWeight += weight * parseInt(body[medCode])
+        if (totalWeight > weightLimit) return res.status(400).json({ msg: 'weight limit exceeded' })
+        data.push({ idCargo, idDrone: serialNumber, idMedication: code })
+      }
+      const result = await Cargo.bulkCreate(data)
+      const idStateLoaded = await getIdStateLoaded()
+      const newState = { state: idStateLoaded }
+      await Drone.update(newState, { where: { serialNumber } })
+      res.status(201).json(result)
+    } catch (error) {
+      console.error(error)
+      res.status(500).json({ error: 'Error load medication' })
     }
   }
 }
@@ -122,4 +172,13 @@ const getStates = async () => {
 const checkDrone = async (serialNumber) => {
   const resp = await Drone.findOne({ where: { serialNumber } })
   return !resp
+}
+const getLastIdCargo = async () => {
+  const idCargo = await Cargo.max('idCargo')
+  return idCargo ?? 0
+}
+const getIdStateLoaded = async () => {
+  const idState = await State.findOne({ where: { name: 'LOADED' } })
+  const { id } = idState.toJSON()
+  return id
 }

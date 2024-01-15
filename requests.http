@@ -23,9 +23,10 @@ Content-Type:application/json
 }
 
 ###
-POST {{host}}/drones/1/medications
+POST {{host}}/drones/DRN013/medications
 Content-Type:application/json
 
 {
-
+    "MED001":"1",
+    "MED002":"2"
 }
