@@ -1,4 +1,4 @@
-import { Op, where } from 'sequelize'
+import { Op } from 'sequelize'
 import Drone from '../models/drone.js'
 import Model from '../models/model.js'
 import State from '../models/state.js'
